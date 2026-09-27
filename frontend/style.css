@@ -1,0 +1,297 @@
+/*
+ * Kalima frontend — hackathon build.
+ * CORS and production hardening are out of scope here, matching the note in backend/main.py.
+ *
+ * Contrast (WCAG AA), checked against the tokens below:
+ *   charcoal on warm-white        13:1   body text
+ *   slate-gray on warm-white      4.6:1  secondary text (passes 4.5 for normal text)
+ *   white on deep-slate           11.8:1 header text, primary button
+ *   turquoise on deep-slate       6.6:1  part counter
+ *   deep-slate on turquoise       6.6:1  mic icon — white on turquoise is only 1.8:1, so not used
+ *   deep-slate on gold            6.7:1  mic icon while recording
+ *   deep-slate on warm-white      11.3:1 focus ring, mic border (turquoise would be 1.7:1 there)
+ */
+
+:root {
+  --deep-slate: #183B4E;
+  --teal: #2A9D8F;
+  --turquoise: #52D6C5;
+  --gold: #F4B942;
+  --warm-white: #F8FAF9;
+  --white: #FFFFFF;
+  --charcoal: #203038;
+  --slate-gray: #64747A;
+  --soft-gray: #DCE5E5;
+
+  --radius: 8px;
+  --font: "Atkinson Hyperlegible", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%; /* respects the user's browser font size; 1rem = 16px by default */
+}
+
+body {
+  margin: 0;
+  background: var(--warm-white);
+  color: var(--charcoal);
+  font-family: var(--font);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+/* Focus: always visible, never removed. Deep slate reads on every light surface here. */
+:focus-visible {
+  outline: 3px solid var(--deep-slate);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- Header ---------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--deep-slate);
+  color: var(--white);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.part-counter {
+  margin: 0;
+  color: var(--turquoise);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ---------- Layout ---------- */
+
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.status {
+  min-height: 1.6em; /* reserve space so content doesn't jump when the status changes */
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--teal);
+  background: var(--white);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.status:empty {
+  visibility: hidden;
+}
+
+/* ---------- Upload state ---------- */
+
+#upload-view {
+  text-align: center;
+}
+
+.intro {
+  margin: 2rem 0;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.button-primary {
+  min-height: 64px;
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--deep-slate);
+  color: var(--white);
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button-primary:hover {
+  background: var(--charcoal);
+}
+
+.button-primary:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* ---------- Lesson state ---------- */
+
+.part-title {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.part-text {
+  font-size: 1.25rem; /* ~20px: lesson content, err on the large side for low vision */
+  line-height: 1.7;
+}
+
+.part-text p {
+  margin: 0 0 1.1em;
+  white-space: pre-line; /* keep single line breaks from the extracted text */
+}
+
+.talk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 2.5rem 0;
+  padding: 1.5rem 1rem;
+  border-top: 2px solid var(--soft-gray);
+  border-bottom: 2px solid var(--soft-gray);
+}
+
+.mic-button {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border: 3px solid var(--deep-slate); /* gives the control a 3:1+ boundary against the page */
+  border-radius: 50%;
+  background: var(--turquoise);
+  color: var(--deep-slate);
+  cursor: pointer;
+  touch-action: none; /* hold-to-talk: no scroll/zoom gestures on the button */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.mic-button:hover {
+  background: var(--teal);
+}
+
+/* Recording, static indicator (always applies; also the reduced-motion alternative). */
+.mic-button.is-recording {
+  background: var(--gold);
+  outline: 4px solid var(--gold);
+  outline-offset: 4px;
+}
+
+.mic-button[aria-disabled="true"] {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* The one deliberate motion moment: a subtle pulse while recording. */
+@media (prefers-reduced-motion: no-preference) {
+  .mic-button.is-recording {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); outline-offset: 4px; }
+    50% { transform: scale(1.06); outline-offset: 8px; }
+  }
+}
+
+.talk-hint {
+  margin: 0;
+  color: var(--slate-gray);
+  font-size: 1rem;
+}
+
+/* Fallback buttons: deliberately quieter than the mic. White on teal would be only 3.3:1 for
+   normal-size text, so teal is the border (3.2:1 against the page) and the text stays charcoal. */
+.fallback-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.button-secondary {
+  min-height: 44px;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--teal);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--charcoal);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button-secondary:hover {
+  background: var(--soft-gray);
+}
+
+.button-secondary:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.log-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+.log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.log li {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+}
+
+.log .speaker {
+  font-weight: 700;
+}
+
+.log .from-kalima {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--soft-gray);
+}
+
+.lesson-complete {
+  margin: 2rem 0 0;
+  padding: 1rem;
+  border-left: 4px solid var(--gold);
+  background: var(--white);
+  font-size: 1.375rem;
+  font-weight: 700;
+}

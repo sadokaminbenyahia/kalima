@@ -1,6 +1,6 @@
 # Kalima — AI Voice Tutor for Visually Impaired Students
 
-Hackathon: GOMYCODE x NVIDIA "Come Build with AI"
+Hackathon: GOMYCODE x NVIDIA "Come Build with AI" (27 September 2026, Tunisia)
 
 This file is the build spec for Claude Code. It describes what to build, why, and the exact API to
 integrate with. Read it fully before writing code.
@@ -66,10 +66,21 @@ This ONE model handles the entire pipeline:
 | Voice question transcription | Audio (wav/mp3, up to 1 hour) | |
 | Intent classification & answering | Text | Use "instruct mode" (non-thinking) for fast, low-latency responses during the live demo; reserve "thinking mode" only if a question needs deeper reasoning |
 
-- OpenAI-compatible API (use the `openai` Python SDK, pointed at NVIDIA's `base_url`).
+- OpenAI-compatible chat-completions API, called directly with the `requests` library (no SDK needed).
+  Endpoint: `https://integrate.api.nvidia.com/v1/chat/completions`. Model string:
+  `"nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"`. Auth: `Authorization: Bearer <NVIDIA_API_KEY>`.
 - Get an API key from https://build.nvidia.com/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning ("Get API Key").
-- Example calls (image, audio, text) are on that model's page under "API Reference" — pull the exact
-  request shape from there when wiring up each pipeline stage.
+  Treat it as a real secret from the moment it's generated: only ever put it in a gitignored `.env`, never
+  in a prompt, a chat message, or a committed file. If one is ever pasted somewhere it shouldn't be,
+  regenerate it immediately rather than reusing it.
+- **Thinking is ON by default** on this model — a call without extra flags will reason before answering,
+  which is too slow for a live voice demo. For fast responses, send
+  `"chat_template_kwargs": {"enable_thinking": false}` in the payload. To deliberately allow reasoning for
+  a harder question, set `reasoning_budget` (a value above 0) instead, and raise `max_tokens` accordingly
+  (reasoning tokens count against it — a low `max_tokens` with reasoning on can come back empty).
+- Image and audio go in the same `messages[].content` list format as text, as
+  `{"type": "image_url", "image_url": {"url": ...}}` or `{"type": "audio_url", "audio_url": {"url": ...}}`
+  — both accept a public URL or a `data:` base64 URL. Audio supports WAV, MP3, FLAC.
 - For PDFs: render each page to PNG (e.g. with `pymupdf`/`fitz`), then send each page image through the
   same image-understanding call used for OCR.
 
@@ -143,9 +154,8 @@ Nothing special is required. This is a straightforward Python (FastAPI) + vanill
 built-in file, shell, and edit tools cover all of it: `pip install`/`npm` via the shell, editing files
 directly, running the dev server.
 
-- **No MCP servers needed** for the core build. The NVIDIA model is called over plain HTTPS (the `openai`
-  SDK pointed at NVIDIA's endpoint) — that's a normal HTTP call, not something that needs an MCP
-  integration.
+- **No MCP servers needed** for the core build. The NVIDIA model is called over plain HTTPS with the
+  `requests` library — that's a normal HTTP call, not something that needs an MCP integration.
 - **Optional, only if time allows:** a browser-automation MCP (e.g. a Playwright-based one, if available
   in your Claude Code setup) can be useful for automatically clicking through the push-to-talk flow while
   debugging the frontend, instead of testing by hand every time. Not required to ship the project.
@@ -165,7 +175,7 @@ kalima/
 │   │   ├── transcribe.py    # audio → text (student's spoken input)
 │   │   └── dialogue.py      # intent classification + answering + re-explain, with context
 │   ├── models/
-│   │   └── nemotron_client.py  # thin wrapper around the NVIDIA API (OpenAI SDK client)
+│   │   └── nemotron_client.py  # thin wrapper around the NVIDIA API (requests-based)
 │   └── requirements.txt
 ├── frontend/
 │   ├── index.html           # accessible UI: upload, push-to-talk button, lesson state, aria-live region

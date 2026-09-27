@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalima</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <!-- Decorative: the "Kalima" text next to it carries the name. -->
+      <img src="assets/logo.png" alt="" class="brand-logo" id="brand-logo">
+      <span class="brand-name">Kalima</span>
+    </div>
+    <p class="part-counter" id="part-counter" hidden></p>
+  </header>
+
+  <main class="container">
+    <!-- Visible status, announced to screen readers: sighted users see the same state. -->
+    <p class="status" id="status" aria-live="polite"></p>
+
+    <section id="upload-view" aria-labelledby="upload-heading">
+      <h1 id="upload-heading" class="intro">
+        Upload a lesson. Kalima reads it aloud, one part at a time. Ask questions or ask it to explain
+        again, anytime.
+      </h1>
+      <!-- The native file input is hidden; the button opens it, so focus and labelling stay simple. -->
+      <input type="file" id="file-input" accept=".pdf,application/pdf" hidden>
+      <button type="button" class="button-primary" id="choose-file">Choose a PDF</button>
+    </section>
+
+    <section id="lesson-view" aria-labelledby="part-title" hidden>
+      <article class="part">
+        <h1 class="part-title" id="part-title"></h1>
+        <div class="part-text" id="part-text"></div>
+      </article>
+      <p class="lesson-complete" id="lesson-complete" hidden>Lesson complete. You can still ask questions about this part.</p>
+
+      <div class="talk">
+        <button type="button" class="mic-button" id="mic-button" aria-label="Hold to speak">
+          <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true" focusable="false">
+            <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/>
+            <path d="M6 11a6 6 0 0 0 12 0M12 17v4M8.5 21h7" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <p class="talk-hint">Hold the button, or hold Space, while you speak.</p>
+        <!-- Fallback controls in case voice input fails; after the mic in tab order. -->
+        <div class="fallback-controls">
+          <button type="button" class="button-secondary" id="read-again"
+                  aria-label="Read again, from the start of this part">Read again</button>
+          <button type="button" class="button-secondary" id="next-part"
+                  aria-label="Next part of the lesson">Next part</button>
+        </div>
+      </div>
+
+      <h2 class="log-heading">Conversation</h2>
+      <ol class="log" id="log"></ol>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
